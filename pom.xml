@@ -10,7 +10,7 @@
     <version>1.0-SNAPSHOT</version>
 
     <description>
-        A HTTP sender framework based on Java.
+        A HTTP client sender framework based on Java.
     </description>
 
     <url>https://github.com/lavenderx/http-sender</url>
@@ -64,6 +64,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpmime</artifactId>
+            <version>4.5.3</version>
+        </dependency>
         <!-- https://github.com/AsyncHttpClient/async-http-client -->
         <dependency>
             <groupId>org.asynchttpclient</groupId>
@@ -76,9 +81,19 @@
             <version>2.8.8</version>
         </dependency>
         <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>21.0</version>
+        </dependency>
+        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.16.16</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.5</version>
         </dependency>
     </dependencies>
 
@@ -130,6 +145,15 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <!-- https://maven.apache.org/scm/maven-scm-plugin/usage.html -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-scm-plugin</artifactId>
+                <version>1.9.5</version>
+                <configuration>
+                    <connectionType>developerConnection</connectionType>
+                </configuration>
             </plugin>
         </plugins>
 
