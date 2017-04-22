@@ -2,6 +2,7 @@ package org.lavenderx.http;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public enum HttpMethod {
 
@@ -24,13 +25,12 @@ public enum HttpMethod {
      * @return the corresponding {@code HttpMethod}, or {@code null} if not found
      */
     public static HttpMethod resolve(String method) {
-        return (method != null ? mappings.get(method) : null);
+        return (Objects.nonNull(method) ? mappings.get(method) : null);
     }
 
 
     /**
-     * Determine whether this {@code HttpMethod} matches the given
-     * method value.
+     * Determine whether this {@code HttpMethod} matches the given method value.
      *
      * @param method the method value as a String
      * @return {@code true} if it matches, {@code false} otherwise
