@@ -425,7 +425,7 @@ public class HttpSender {
          * @param sslContext for {@code HttpClient}
          * @return
          */
-        public final Builder setSslcontext(final SSLContext sslContext) {
+        public final Builder setSslContext(final SSLContext sslContext) {
             this.sslContext = sslContext;
             return this;
         }
@@ -509,7 +509,7 @@ public class HttpSender {
                 }
             } else {
                 if (Objects.nonNull(sslContext)) {
-                    this.httpClientBuilder.setSslcontext(sslContext);
+                    this.httpClientBuilder.setSSLContext(sslContext);
                 }
                 if (Objects.nonNull(sslSocketFactory)) {
                     this.httpClientBuilder.setSSLSocketFactory(sslSocketFactory);

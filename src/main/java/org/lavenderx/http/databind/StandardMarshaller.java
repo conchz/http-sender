@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.entity.ContentType;
-import org.asynchttpclient.util.Utf8UrlEncoder;
 import org.lavenderx.http.HttpMethod;
 import org.lavenderx.http.SenderException;
 import org.lavenderx.http.annotation.HttpOption;
@@ -18,6 +17,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.asynchttpclient.util.Utf8UrlEncoder.encodeQueryElement;
 
 public class StandardMarshaller implements Marshaller {
 
@@ -48,7 +48,7 @@ public class StandardMarshaller implements Marshaller {
                 if (count == 0) {
                     continue;
                 }
-                requestUrl = requestUrl.replaceAll("\\{" + entry.getKey() + "\\}", Utf8UrlEncoder.encodeQueryElement(entry.getValue()));
+                requestUrl = requestUrl.replaceAll("\\{" + entry.getKey() + "\\}", encodeQueryElement(entry.getValue()));
             }
 
             MarshalResult result = new MarshalResult(requestUrl, null);

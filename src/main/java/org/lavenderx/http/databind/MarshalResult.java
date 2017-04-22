@@ -1,9 +1,11 @@
 package org.lavenderx.http.databind;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
+import org.lavenderx.http.utils.NonNullToStringStyle;
 
-public class MarshalResult {
+import java.io.Serializable;
+
+public class MarshalResult implements Serializable {
 
     /**
      * Request URL, not include domain
@@ -27,6 +29,6 @@ public class MarshalResult {
 
     @Override
     public String toString() {
-        return ToStringBuilder.reflectionToString(this, ToStringStyle.JSON_STYLE);
+        return ToStringBuilder.reflectionToString(this, NonNullToStringStyle.JSON_STYLE);
     }
 }
