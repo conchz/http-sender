@@ -29,6 +29,6 @@ public class MarshalResult implements Serializable {
 
     @Override
     public String toString() {
-        return ToStringBuilder.reflectionToString(this, NonNullToStringStyle.JSON_STYLE);
+        return ToStringBuilder.reflectionToString(this, NonNullToStringStyle.NON_NULL_JSON_STYLE);
     }
 }

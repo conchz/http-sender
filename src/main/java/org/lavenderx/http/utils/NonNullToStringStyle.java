@@ -4,7 +4,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.util.Objects;
 
-public class NonNullToStringStyle extends ToStringStyle {
+public final class NonNullToStringStyle extends ToStringStyle {
 
     public static final ToStringStyle NON_NULL_JSON_STYLE = new NonNullToStringStyle();
 
