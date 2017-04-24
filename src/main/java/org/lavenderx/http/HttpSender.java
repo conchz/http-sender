@@ -469,6 +469,11 @@ public class HttpSender {
 
         public final HttpSender build() {
             if (useAsync) {
+                this.asyncHttpClientConfigBuilder.setConnectTimeout(timeout);
+                this.asyncHttpClientConfigBuilder.setRequestTimeout(timeout);
+                this.asyncHttpClientConfigBuilder.setMaxRequestRetry(maxRetry);
+                this.asyncHttpClientConfigBuilder.setCompressionEnforced(true);
+
                 if (ignoreSSL) {
                     try {
                         SslContext sslContext = SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build();
@@ -477,17 +482,13 @@ public class HttpSender {
                         log.error("Ignore SSL certificate failed", e);
                         throw new SenderException("Ignore SSL certificate failed", e);
                     }
-                }
-
-                this.asyncHttpClientConfigBuilder.setConnectTimeout(timeout);
-                this.asyncHttpClientConfigBuilder.setRequestTimeout(timeout);
-                this.asyncHttpClientConfigBuilder.setMaxRequestRetry(maxRetry);
-            } else {
-                if (Objects.nonNull(nettySslContext)) {
-                    this.asyncHttpClientConfigBuilder.setSslContext(nettySslContext);
-                }
-                if (Objects.nonNull(sslEngineFactory)) {
-                    this.asyncHttpClientConfigBuilder.setSslEngineFactory(sslEngineFactory);
+                } else {
+                    if (Objects.nonNull(nettySslContext)) {
+                        this.asyncHttpClientConfigBuilder.setSslContext(nettySslContext);
+                    }
+                    if (Objects.nonNull(sslEngineFactory)) {
+                        this.asyncHttpClientConfigBuilder.setSslEngineFactory(sslEngineFactory);
+                    }
                 }
             }
 
