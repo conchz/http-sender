@@ -523,11 +523,10 @@ public class HttpSender {
             // Add retry strategy when service unavailable
             this.httpClientBuilder.setServiceUnavailableRetryStrategy(new ServiceUnavailableRetryStrategy() {
                 private final Set<Integer> serviceUnavailableStatusCodes = new HashSet<>(
-                        Arrays.asList(new Integer[]{
-                                HttpStatus.SC_INTERNAL_SERVER_ERROR,
+                        Arrays.asList(HttpStatus.SC_INTERNAL_SERVER_ERROR,
                                 HttpStatus.SC_BAD_GATEWAY,
                                 HttpStatus.SC_SERVICE_UNAVAILABLE,
-                                HttpStatus.SC_GATEWAY_TIMEOUT})
+                                HttpStatus.SC_GATEWAY_TIMEOUT)
                 );
                 private static final long retryInterval = 3_000;
 

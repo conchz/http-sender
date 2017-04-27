@@ -13,8 +13,6 @@ import org.lavenderx.http.annotation.JacksonProperty;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.asynchttpclient.util.Utf8UrlEncoder.encodeQueryElement;
@@ -40,14 +38,6 @@ public class StandardMarshaller implements Marshaller {
             });
 
             for (Map.Entry<String, String> entry : requestParams.entrySet()) {
-                Matcher matcher = Pattern.compile("\\{" + entry.getKey() + "\\}").matcher(requestUrl);
-                int count = 0;
-                while (matcher.find()) {
-                    count++;
-                }
-                if (count == 0) {
-                    continue;
-                }
                 requestUrl = requestUrl.replaceAll("\\{" + entry.getKey() + "\\}", encodeQueryElement(entry.getValue()));
             }
 
