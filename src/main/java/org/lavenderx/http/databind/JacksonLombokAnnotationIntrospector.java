@@ -5,9 +5,11 @@ import com.fasterxml.jackson.core.Versioned;
 import com.fasterxml.jackson.core.util.VersionUtil;
 import com.fasterxml.jackson.databind.PropertyName;
 import com.fasterxml.jackson.databind.introspect.Annotated;
+import com.fasterxml.jackson.databind.introspect.AnnotatedClass;
 import com.fasterxml.jackson.databind.introspect.AnnotatedField;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.google.common.base.Preconditions;
+import org.lavenderx.http.annotation.JacksonNaming;
 import org.lavenderx.http.annotation.JacksonProperty;
 
 import java.lang.annotation.Annotation;
@@ -36,6 +38,12 @@ public class JacksonLombokAnnotationIntrospector extends JacksonAnnotationIntros
     @Override
     public PropertyName findNameForDeserialization(Annotated a) {
         return getPropertyName(a);
+    }
+
+    @Override
+    public Object findNamingStrategy(AnnotatedClass ac) {
+        JacksonNaming ann = _findAnnotation(ac, JacksonNaming.class);
+        return (ann == null) ? null : ann.value();
     }
 
     private PropertyName getPropertyName(Annotated a) {

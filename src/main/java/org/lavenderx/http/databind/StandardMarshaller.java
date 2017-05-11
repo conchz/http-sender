@@ -13,6 +13,7 @@ import org.lavenderx.http.annotation.JacksonProperty;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
+import java.util.StringJoiner;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.asynchttpclient.util.Utf8UrlEncoder.encodeQueryElement;
@@ -37,8 +38,25 @@ public class StandardMarshaller implements Marshaller {
             final Map<String, String> requestParams = mapper.readValue(requestString, new TypeReference<Map<String, String>>() {
             });
 
+            final StringJoiner urlParams = new StringJoiner("&");
             for (Map.Entry<String, String> entry : requestParams.entrySet()) {
-                requestUrl = requestUrl.replaceAll("\\{" + entry.getKey() + "\\}", encodeQueryElement(entry.getValue()));
+                if (requestUrl.contains(entry.getKey())) {
+                    requestUrl = requestUrl.replaceAll("\\{" + entry.getKey() + "\\}", encodeQueryElement(entry.getValue()));
+                } else {
+                    if (isNotEmpty(entry.getValue())) {
+                        urlParams.add(entry.getKey() + "=" + entry.getValue());
+                    }
+                }
+            }
+
+            if (HttpMethod.GET == method) {
+                if (urlParams.length() > 0) {
+                    if (requestUrl.contains("?")) {
+                        requestUrl = requestUrl + "&" + urlParams.toString();
+                    } else {
+                        requestUrl = requestUrl + "?" + urlParams.toString();
+                    }
+                }
             }
 
             MarshalResult result = new MarshalResult(requestUrl, null);

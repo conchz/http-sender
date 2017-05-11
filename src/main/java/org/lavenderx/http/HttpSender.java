@@ -5,6 +5,7 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
@@ -79,7 +80,7 @@ public class HttpSender {
     private final int timeout;
     private final boolean useAsync;
     private final boolean printResponseBody;
-    private final Map<String, String> headers;
+    private final Map<String, String> commonHeaders;
     private final Marshaller marshaller;
     private final Unmarshaller unmarshaller;
 
@@ -89,7 +90,7 @@ public class HttpSender {
     private HttpSender(final int timeout,
                        final boolean useAsync,
                        final boolean printResponseBody,
-                       final Map<String, String> headers,
+                       final Map<String, String> commonHeaders,
                        final Marshaller marshaller,
                        final Unmarshaller unmarshaller,
                        final HttpClientBuilder httpClientBuilder,
@@ -97,7 +98,7 @@ public class HttpSender {
         this.timeout = timeout;
         this.useAsync = useAsync;
         this.printResponseBody = printResponseBody;
-        this.headers = headers;
+        this.commonHeaders = commonHeaders;
         this.marshaller = marshaller;
         this.unmarshaller = unmarshaller;
         this.httpClientBuilder = httpClientBuilder;
@@ -118,7 +119,7 @@ public class HttpSender {
     }
 
     @SuppressWarnings("unchecked")
-    public final <T> T send(String rootUrl, Object req, Object resType) throws SenderException {
+    public final <T> T send(String rootUrl, Object req, Object resType, Header... headers) throws SenderException {
         try {
             MarshalResult marshalResult = marshaller.marshal(req);
             HttpOption httpOption = req.getClass().getAnnotation(HttpOption.class);
@@ -130,13 +131,13 @@ public class HttpSender {
                 case GET:
                     HttpGet getRequest = new HttpGet(requestUrl);
                     getRequest.setHeader(HttpHeaders.CONTENT_TYPE, contentType.getMimeType());
-                    responseString = execute(getRequest);
+                    responseString = execute(getRequest, headers);
                     break;
                 case POST:
                     HttpPost request = new HttpPost(requestUrl);
                     if (Objects.equals(contentType.getMimeType(), ContentType.APPLICATION_JSON.getMimeType())) {
                         request.setEntity(new StringEntity(marshalResult.requestBody().toString(), contentType));
-                        responseString = execute(request);
+                        responseString = execute(request, headers);
                     } else if (Objects.equals(ContentType.APPLICATION_FORM_URLENCODED.getMimeType(), contentType.getMimeType())) {
                         List<NameValuePair> parameters = ((Map<String, String>) marshalResult.requestBody())
                                 .entrySet()
@@ -146,7 +147,7 @@ public class HttpSender {
 
                         request.setHeader(HttpHeaders.CONTENT_TYPE, contentType.getMimeType());
                         request.setEntity(new UrlEncodedFormEntity(parameters, UTF_8));
-                        responseString = execute(request);
+                        responseString = execute(request, headers);
                     } else if (Objects.equals(ContentType.MULTIPART_FORM_DATA.getMimeType(), contentType.getMimeType())) {
                         Map<String, ContentBody> parameters = (Map<String, ContentBody>) marshalResult.requestBody();
                         MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create()
@@ -155,7 +156,7 @@ public class HttpSender {
                         parameters.forEach(entityBuilder::addPart);
                         HttpEntity httpEntity = entityBuilder.build();
                         request.setEntity(httpEntity);
-                        responseString = execute(request);
+                        responseString = execute(request, headers);
                     } else {
                         throw new SenderException("Unknown Content-Type in HTTP request");
                     }
@@ -178,7 +179,7 @@ public class HttpSender {
         }
     }
 
-    public final <T> ListenableFuture<T> sendAsync(String rootUrl, Object req, Object resType)
+    public final <T> ListenableFuture<T> sendAsync(String rootUrl, Object req, Object resType, Header... headers)
             throws SenderException {
         if (!useAsync) {
             throw new SenderException("Async mode isn't active");
@@ -186,14 +187,14 @@ public class HttpSender {
 
         try {
             MarshalResult marshalResult = marshaller.marshal(req);
-            return executeAsync(rootUrl, req.getClass().getAnnotation(HttpOption.class), marshalResult, resType);
+            return executeAsync(rootUrl, req.getClass().getAnnotation(HttpOption.class), marshalResult, resType, headers);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new SenderException(e);
         }
     }
 
-    public final <T, R> R sendByXml(String url, T request, Class<T> reqClass, Class<R> resClass)
+    public final <T, R> R sendByXml(String url, T request, Class<T> reqClass, Class<R> resClass, Header... headers)
             throws SenderException {
         try {
             JAXBContext context = JAXBContext.newInstance(reqClass);
@@ -215,6 +216,9 @@ public class HttpSender {
             postRequest.setConfig(createRequestConfig());
             postRequest.setEntity(entity);
             postRequest.setHeader(CONTENT_TYPE, ContentType.TEXT_XML.getMimeType());
+            if (headers.length > 0) {
+                Arrays.stream(headers).forEach(postRequest::setHeader);
+            }
 
             try (CloseableHttpClient httpClient = HttpClients.createDefault();
                  CloseableHttpResponse response = httpClient.execute(postRequest)) {
@@ -234,10 +238,13 @@ public class HttpSender {
         }
     }
 
-    protected String execute(HttpRequestBase request) throws IOException {
+    protected String execute(HttpRequestBase request, Header... headers) throws IOException {
         request.setConfig(createRequestConfig());
-        if (!headers.isEmpty()) {
-            headers.forEach(request::setHeader);
+        if (!commonHeaders.isEmpty()) {
+            commonHeaders.forEach(request::setHeader);
+        }
+        if (headers.length > 0) {
+            Arrays.stream(headers).forEach(request::setHeader);
         }
         if (request instanceof HttpPost) {
             log.info("Sync request: {requestLine={}, requestBody={}}",
@@ -267,7 +274,8 @@ public class HttpSender {
     protected <R> ListenableFuture<R> executeAsync(String rootUrl,
                                                    HttpOption httpOption,
                                                    MarshalResult marshalResult,
-                                                   Object resType) {
+                                                   Object resType,
+                                                   Header... headers) {
         try {
             final AsyncHttpClient asyncHttpClient = asyncHttpClient(asyncHttpClientConfigBuilder);
             HttpMethod method = httpOption.method();
@@ -292,8 +300,13 @@ public class HttpSender {
                     // TODO send `multipart/form-data` request
                 }
             }
-            if (!headers.isEmpty()) {
-                headers.forEach(boundRequestBuilder::setHeader);
+            if (!commonHeaders.isEmpty()) {
+                commonHeaders.forEach(boundRequestBuilder::setHeader);
+            }
+            if (headers.length > 0) {
+                for (Header header : headers) {
+                    boundRequestBuilder.setHeader(header.getName(), header.getValue());
+                }
             }
             log.info("Async request: {uri={}, method={}, stringData={}}", requestUrl, method, marshalResult.requestBody());
 
@@ -369,7 +382,7 @@ public class HttpSender {
         private boolean useAsync;
         private boolean ignoreSSL;
         private boolean printResponseBody;
-        private Map<String, String> headers;
+        private Map<String, String> commonHeaders;
         private SSLContext sslContext;
         private SSLConnectionSocketFactory sslSocketFactory;
         private SslContext nettySslContext;
@@ -384,7 +397,7 @@ public class HttpSender {
         public Builder() {
             this.timeout = 60_000;
             this.maxRetry = 3;
-            this.headers = Collections.emptyMap();
+            this.commonHeaders = Collections.emptyMap();
             this.marshaller = new StandardMarshaller();
             this.unmarshaller = new DefaultUnmarshaller();
             this.httpClientBuilder = HttpClients.custom();
@@ -416,8 +429,8 @@ public class HttpSender {
             return this;
         }
 
-        public final Builder setHeaders(final Map<String, String> headers) {
-            this.headers = headers;
+        public final Builder setCommonHeaders(final Map<String, String> commonHeaders) {
+            this.commonHeaders = commonHeaders;
             return this;
         }
 
@@ -469,6 +482,7 @@ public class HttpSender {
 
         public final HttpSender build() {
             if (useAsync) {
+                this.asyncHttpClientConfigBuilder.setReadTimeout(timeout);
                 this.asyncHttpClientConfigBuilder.setConnectTimeout(timeout);
                 this.asyncHttpClientConfigBuilder.setRequestTimeout(timeout);
                 this.asyncHttpClientConfigBuilder.setMaxRequestRetry(maxRetry);
@@ -543,11 +557,11 @@ public class HttpSender {
             });
 
             // Considering every request has different `Content-Type`.
-            if (headers.containsKey(CONTENT_TYPE)) {
-                headers.remove(CONTENT_TYPE);
+            if (commonHeaders.containsKey(CONTENT_TYPE)) {
+                commonHeaders.remove(CONTENT_TYPE);
             }
 
-            return new HttpSender(timeout, useAsync, printResponseBody, headers,
+            return new HttpSender(timeout, useAsync, printResponseBody, commonHeaders,
                     marshaller, unmarshaller, httpClientBuilder, asyncHttpClientConfigBuilder);
         }
     }
