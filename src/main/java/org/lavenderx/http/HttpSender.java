@@ -247,12 +247,15 @@ public class HttpSender {
             Arrays.stream(headers).forEach(request::setHeader);
         }
         if (request instanceof HttpPost) {
-            log.info("Sync request: {requestLine={}, requestBody={}}",
-                    ToStringBuilder.reflectionToString(request.getRequestLine(), NON_NULL_JSON_STYLE),
-                    EntityUtils.toString(((HttpPost) request).getEntity(), UTF_8));
+            HttpEntity httpPostEntity = ((HttpPost) request).getEntity();
+            if (!Objects.equals(ContentType.MULTIPART_FORM_DATA.getMimeType(),
+                    ContentType.get(httpPostEntity).getMimeType())) {
+                log.info("Sync request: {requestLine={}, requestBody={}}",
+                        ToStringBuilder.reflectionToString(request.getRequestLine(), NON_NULL_JSON_STYLE),
+                        EntityUtils.toString(httpPostEntity, UTF_8));
+            }
         } else {
-            log.info("Sync request: {}",
-                    ToStringBuilder.reflectionToString(request.getRequestLine(), NON_NULL_JSON_STYLE));
+            log.info("Sync request: {}", ToStringBuilder.reflectionToString(request.getRequestLine(), NON_NULL_JSON_STYLE));
         }
 
         try (CloseableHttpClient client = httpClientBuilder.build();
