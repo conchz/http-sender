@@ -7,9 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ServiceUnavailableRetryStrategy;
 import org.apache.http.client.config.RequestConfig;
@@ -70,9 +68,23 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Objects.nonNull;
+import static javax.xml.bind.Marshaller.JAXB_ENCODING;
+import static javax.xml.bind.Marshaller.JAXB_FORMATTED_OUTPUT;
+import static javax.xml.bind.Marshaller.JAXB_FRAGMENT;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
+import static org.apache.http.HttpStatus.SC_BAD_GATEWAY;
+import static org.apache.http.HttpStatus.SC_GATEWAY_TIMEOUT;
+import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
+import static org.apache.http.HttpStatus.SC_OK;
+import static org.apache.http.HttpStatus.SC_SERVICE_UNAVAILABLE;
+import static org.apache.http.entity.ContentType.APPLICATION_FORM_URLENCODED;
+import static org.apache.http.entity.ContentType.APPLICATION_JSON;
+import static org.apache.http.entity.ContentType.MULTIPART_FORM_DATA;
+import static org.apache.http.entity.ContentType.TEXT_XML;
 import static org.asynchttpclient.Dsl.asyncHttpClient;
+import static org.lavenderx.http.HttpMethod.POST;
 import static org.lavenderx.http.utils.NonNullToStringStyle.NON_NULL_JSON_STYLE;
 
 @Slf4j
@@ -128,25 +140,25 @@ public class HttpSender {
             switch (method) {
                 case GET:
                     HttpGet getRequest = new HttpGet(requestUrl);
-                    getRequest.setHeader(HttpHeaders.CONTENT_TYPE, contentType.getMimeType());
+                    getRequest.setHeader(CONTENT_TYPE, contentType.getMimeType());
                     responseString = execute(getRequest, headers);
                     break;
                 case POST:
                     HttpPost request = new HttpPost(requestUrl);
-                    if (Objects.equals(contentType.getMimeType(), ContentType.APPLICATION_JSON.getMimeType())) {
+                    if (Objects.equals(contentType.getMimeType(), APPLICATION_JSON.getMimeType())) {
                         request.setEntity(new StringEntity(marshalResult.requestBody().toString(), contentType));
                         responseString = execute(request, headers);
-                    } else if (Objects.equals(ContentType.APPLICATION_FORM_URLENCODED.getMimeType(), contentType.getMimeType())) {
+                    } else if (Objects.equals(APPLICATION_FORM_URLENCODED.getMimeType(), contentType.getMimeType())) {
                         List<NameValuePair> parameters = ((Map<String, String>) marshalResult.requestBody())
                                 .entrySet()
                                 .stream()
                                 .map(entry -> new BasicNameValuePair(entry.getKey(), entry.getValue()))
                                 .collect(Collectors.toList());
 
-                        request.setHeader(HttpHeaders.CONTENT_TYPE, contentType.getMimeType());
+                        request.setHeader(CONTENT_TYPE, contentType.getMimeType());
                         request.setEntity(new UrlEncodedFormEntity(parameters, UTF_8));
                         responseString = execute(request, headers);
-                    } else if (Objects.equals(ContentType.MULTIPART_FORM_DATA.getMimeType(), contentType.getMimeType())) {
+                    } else if (Objects.equals(MULTIPART_FORM_DATA.getMimeType(), contentType.getMimeType())) {
                         Map<String, ContentBody> parameters = (Map<String, ContentBody>) marshalResult.requestBody();
                         MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create()
                                 .setContentType(contentType)
@@ -198,9 +210,9 @@ public class HttpSender {
             JAXBContext context = JAXBContext.newInstance(reqClass);
 
             javax.xml.bind.Marshaller marshaller = context.createMarshaller();
-            marshaller.setProperty(javax.xml.bind.Marshaller.JAXB_ENCODING, UTF_8.name());
-            marshaller.setProperty(javax.xml.bind.Marshaller.JAXB_FORMATTED_OUTPUT, true);
-            marshaller.setProperty(javax.xml.bind.Marshaller.JAXB_FRAGMENT, false);
+            marshaller.setProperty(JAXB_ENCODING, UTF_8.name());
+            marshaller.setProperty(JAXB_FORMATTED_OUTPUT, true);
+            marshaller.setProperty(JAXB_FRAGMENT, false);
 
             StringWriter writer = new StringWriter();
             marshaller.marshal(request, writer);
@@ -212,7 +224,7 @@ public class HttpSender {
 
             HttpPost postRequest = new HttpPost(url);
             postRequest.setEntity(entity);
-            postRequest.setHeader(CONTENT_TYPE, ContentType.TEXT_XML.getMimeType());
+            postRequest.setHeader(CONTENT_TYPE, TEXT_XML.getMimeType());
             if (headers.length > 0) {
                 Arrays.stream(headers).forEach(postRequest::setHeader);
             }
@@ -244,7 +256,7 @@ public class HttpSender {
         }
         if (request instanceof HttpPost) {
             HttpEntity httpPostEntity = ((HttpPost) request).getEntity();
-            if (!Objects.equals(ContentType.MULTIPART_FORM_DATA.getMimeType(),
+            if (!Objects.equals(MULTIPART_FORM_DATA.getMimeType(),
                     ContentType.get(httpPostEntity).getMimeType())) {
                 log.info("Sync request: {requestLine={}, requestBody={}}",
                         ToStringBuilder.reflectionToString(request.getRequestLine(), NON_NULL_JSON_STYLE),
@@ -257,10 +269,10 @@ public class HttpSender {
         try (CloseableHttpClient client = httpClientBuilder.build();
              CloseableHttpResponse response = client.execute(request)) {
             int statusCode = response.getStatusLine().getStatusCode();
-            if (HttpStatus.SC_OK != statusCode) {
+            if (SC_OK != statusCode) {
                 log.error("statusCode: {}, response: {}",
                         statusCode,
-                        Objects.nonNull(response.getEntity()) ? EntityUtils.toString(response.getEntity(), UTF_8) : EMPTY);
+                        nonNull(response.getEntity()) ? EntityUtils.toString(response.getEntity(), UTF_8) : EMPTY);
                 throw new SenderException(response.getStatusLine().getReasonPhrase());
             }
             return EntityUtils.toString(response.getEntity(), UTF_8);
@@ -285,17 +297,17 @@ public class HttpSender {
             boundRequestBuilder.setUrl(requestUrl)
                     .setCharset(UTF_8)
                     .setHeader(CONTENT_TYPE, mimeType);
-            if (HttpMethod.POST == method) {
-                if (Objects.equals(ContentType.APPLICATION_JSON.getMimeType(), mimeType)) {
+            if (POST == method) {
+                if (Objects.equals(APPLICATION_JSON.getMimeType(), mimeType)) {
                     boundRequestBuilder.setBody(marshalResult.requestBody().toString());
-                } else if (Objects.equals(ContentType.APPLICATION_FORM_URLENCODED.getMimeType(), mimeType)) {
+                } else if (Objects.equals(APPLICATION_FORM_URLENCODED.getMimeType(), mimeType)) {
                     List<Param> formParams = ((Map<String, String>) marshalResult.requestBody())
                             .entrySet()
                             .stream()
                             .map(entry -> new Param(entry.getKey(), entry.getValue()))
                             .collect(Collectors.toList());
                     boundRequestBuilder.setFormParams(formParams);
-                } else if (Objects.equals(ContentType.MULTIPART_FORM_DATA.getMimeType(), mimeType)) {
+                } else if (Objects.equals(MULTIPART_FORM_DATA.getMimeType(), mimeType)) {
                     // TODO send `multipart/form-data` request
                 }
             }
@@ -314,7 +326,7 @@ public class HttpSender {
                 @Override
                 public R onCompleted(Response response) throws Exception {
                     int statusCode = response.getStatusCode();
-                    if (HttpStatus.SC_OK != statusCode) {
+                    if (SC_OK != statusCode) {
                         log.error("statusCode: {}, response: {}", statusCode, response.getStatusText());
                         throw new SenderException(response.getStatusText());
                     }
@@ -487,10 +499,10 @@ public class HttpSender {
                         throw new SenderException("Ignore SSL certificate failed", e);
                     }
                 } else {
-                    if (Objects.nonNull(nettySslContext)) {
+                    if (nonNull(nettySslContext)) {
                         this.asyncHttpClientConfigBuilder.setSslContext(nettySslContext);
                     }
-                    if (Objects.nonNull(sslEngineFactory)) {
+                    if (nonNull(sslEngineFactory)) {
                         this.asyncHttpClientConfigBuilder.setSslEngineFactory(sslEngineFactory);
                     }
                 }
@@ -531,10 +543,10 @@ public class HttpSender {
                     throw new SenderException("Ignore SSL certificate failed", e);
                 }
             } else {
-                if (Objects.nonNull(sslContext)) {
+                if (nonNull(sslContext)) {
                     this.httpClientBuilder.setSSLContext(sslContext);
                 }
-                if (Objects.nonNull(sslSocketFactory)) {
+                if (nonNull(sslSocketFactory)) {
                     this.httpClientBuilder.setSSLSocketFactory(sslSocketFactory);
                 }
             }
@@ -544,13 +556,14 @@ public class HttpSender {
 
             // Add retry strategy when service unavailable
             this.httpClientBuilder.setServiceUnavailableRetryStrategy(new ServiceUnavailableRetryStrategy() {
+                private static final long RETRY_INTERVAL = 3_000;
                 private final Set<Integer> serviceUnavailableStatusCodes = new HashSet<>(
-                        Arrays.asList(HttpStatus.SC_INTERNAL_SERVER_ERROR,
-                                HttpStatus.SC_BAD_GATEWAY,
-                                HttpStatus.SC_SERVICE_UNAVAILABLE,
-                                HttpStatus.SC_GATEWAY_TIMEOUT)
+                        Arrays.asList(
+                                SC_INTERNAL_SERVER_ERROR,
+                                SC_BAD_GATEWAY,
+                                SC_SERVICE_UNAVAILABLE,
+                                SC_GATEWAY_TIMEOUT)
                 );
-                private static final long retryInterval = 3_000;
 
                 @Override
                 public boolean retryRequest(HttpResponse response, int executionCount, HttpContext context) {
@@ -560,7 +573,7 @@ public class HttpSender {
 
                 @Override
                 public long getRetryInterval() {
-                    return retryInterval;
+                    return RETRY_INTERVAL;
                 }
             });
 

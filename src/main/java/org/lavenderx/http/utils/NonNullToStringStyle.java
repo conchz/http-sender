@@ -8,7 +8,7 @@ public final class NonNullToStringStyle extends ToStringStyle {
 
     public static final ToStringStyle NON_NULL_JSON_STYLE = new NonNullToStringStyle();
 
-    NonNullToStringStyle() {
+    private NonNullToStringStyle() {
         super();
 
         this.setUseClassName(false);

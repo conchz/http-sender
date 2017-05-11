@@ -40,6 +40,12 @@
         </license>
     </licenses>
 
+    <properties>
+        <httpClientVersion>4.5.3</httpClientVersion>
+        <asyncHttpClientVersion>2.0.31</asyncHttpClientVersion>
+        <jacksonVersion>2.8.8</jacksonVersion>
+    </properties>
+
     <repositories>
         <repository>
             <id>central-repo</id>
@@ -57,7 +63,7 @@
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.5.3</version>
+            <version>${httpClientVersion}</version>
             <exclusions>
                 <exclusion>
                     <artifactId>commons-logging</artifactId>
@@ -68,18 +74,18 @@
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpmime</artifactId>
-            <version>4.5.3</version>
+            <version>${httpClientVersion}</version>
         </dependency>
         <!-- https://github.com/AsyncHttpClient/async-http-client -->
         <dependency>
             <groupId>org.asynchttpclient</groupId>
             <artifactId>async-http-client</artifactId>
-            <version>2.0.31</version>
+            <version>${asyncHttpClientVersion}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.8.8</version>
+            <version>${jacksonVersion}</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>

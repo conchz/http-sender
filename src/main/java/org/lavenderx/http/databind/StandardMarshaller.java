@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.entity.ContentType;
 import org.lavenderx.http.HttpMethod;
 import org.lavenderx.http.SenderException;
 import org.lavenderx.http.annotation.HttpOption;
@@ -16,7 +15,11 @@ import java.util.Objects;
 import java.util.StringJoiner;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.apache.http.entity.ContentType.APPLICATION_FORM_URLENCODED;
+import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 import static org.asynchttpclient.util.Utf8UrlEncoder.encodeQueryElement;
+import static org.lavenderx.http.HttpMethod.GET;
+import static org.lavenderx.http.HttpMethod.POST;
 
 public class StandardMarshaller implements Marshaller {
 
@@ -49,7 +52,7 @@ public class StandardMarshaller implements Marshaller {
                 }
             }
 
-            if (HttpMethod.GET == method) {
+            if (GET == method) {
                 if (urlParams.length() > 0) {
                     if (requestUrl.contains("?")) {
                         requestUrl = requestUrl + "&" + urlParams.toString();
@@ -61,19 +64,19 @@ public class StandardMarshaller implements Marshaller {
 
             MarshalResult result = new MarshalResult(requestUrl, null);
 
-            if (HttpMethod.POST == method) {
+            if (POST == method) {
                 Arrays.stream(obj.getClass().getDeclaredFields())
                         .map(field -> field.getAnnotation(JacksonProperty.class))
                         .filter(Objects::nonNull)
                         .forEach(ann -> {
-                            if (JacksonProperty.Mode.ONLY_URL == ann.mode() && isNotEmpty(ann.value())) {
+                            if (JacksonProperty.Mode.URL == ann.mode() && isNotEmpty(ann.value())) {
                                 requestParams.remove(ann.value());
                             }
                         });
 
-                if (Objects.equals(ContentType.APPLICATION_JSON.getMimeType(), httpOption.mimeType())) {
+                if (Objects.equals(APPLICATION_JSON.getMimeType(), httpOption.mimeType())) {
                     result = new MarshalResult(requestUrl, mapper.writeValueAsString(requestParams));
-                } else if (Objects.equals(ContentType.APPLICATION_FORM_URLENCODED.getMimeType(), httpOption.mimeType())) {
+                } else if (Objects.equals(APPLICATION_FORM_URLENCODED.getMimeType(), httpOption.mimeType())) {
                     result = new MarshalResult(requestUrl, requestParams);
                 } else {
                     throw new SenderException("Unsupported mimeType on marshalling request");

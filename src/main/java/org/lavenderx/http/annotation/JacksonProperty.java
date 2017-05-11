@@ -5,32 +5,30 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+
 @Target({ElementType.ANNOTATION_TYPE, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface JacksonProperty {
 
-    String USE_DEFAULT_NAME = "";
-
-    String value() default USE_DEFAULT_NAME;
-
-    boolean required() default false;
+    String value() default EMPTY;
 
     Mode mode() default Mode.ALL;
 
     /**
-     * 用于在POST模式下, URL地址中和POST请求体中的参数限定
+     * When HTTP method is POST, the <code>Mode</code>is used to control request parameter's range.
      */
     enum Mode {
 
         /**
-         * 序列化之后当前参数只存在于URL地址中
+         * After serialize, the current parameter will only exist in URL.
          */
-        ONLY_URL,
+        URL,
 
         /**
-         * 序列化之后当前参数只存在于POST请求体中
+         * After serialize, the current parameter will only exist in POST body.
          */
-        ONLY_POST,
+        POST,
 
         ALL
     }
