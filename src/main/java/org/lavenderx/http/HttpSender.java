@@ -28,6 +28,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.client.StandardHttpRequestRetryHandler;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.ssl.SSLContextBuilder;
@@ -77,28 +78,25 @@ import static org.lavenderx.http.utils.NonNullToStringStyle.NON_NULL_JSON_STYLE;
 @Slf4j
 public class HttpSender {
 
-    private final int timeout;
     private final boolean useAsync;
     private final boolean printResponseBody;
-    private final Map<String, String> commonHeaders;
+    private final Map<String, String> defaultHeaders;
     private final Marshaller marshaller;
     private final Unmarshaller unmarshaller;
 
     private final HttpClientBuilder httpClientBuilder;
     private final DefaultAsyncHttpClientConfig.Builder asyncHttpClientConfigBuilder;
 
-    private HttpSender(final int timeout,
-                       final boolean useAsync,
+    private HttpSender(final boolean useAsync,
                        final boolean printResponseBody,
-                       final Map<String, String> commonHeaders,
+                       final Map<String, String> defaultHeaders,
                        final Marshaller marshaller,
                        final Unmarshaller unmarshaller,
                        final HttpClientBuilder httpClientBuilder,
                        final DefaultAsyncHttpClientConfig.Builder asyncHttpClientConfigBuilder) {
-        this.timeout = timeout;
         this.useAsync = useAsync;
         this.printResponseBody = printResponseBody;
-        this.commonHeaders = commonHeaders;
+        this.defaultHeaders = defaultHeaders;
         this.marshaller = marshaller;
         this.unmarshaller = unmarshaller;
         this.httpClientBuilder = httpClientBuilder;
@@ -213,14 +211,13 @@ public class HttpSender {
             entity.setChunked(true);
 
             HttpPost postRequest = new HttpPost(url);
-            postRequest.setConfig(createRequestConfig());
             postRequest.setEntity(entity);
             postRequest.setHeader(CONTENT_TYPE, ContentType.TEXT_XML.getMimeType());
             if (headers.length > 0) {
                 Arrays.stream(headers).forEach(postRequest::setHeader);
             }
 
-            try (CloseableHttpClient httpClient = HttpClients.createDefault();
+            try (CloseableHttpClient httpClient = httpClientBuilder.build();
                  CloseableHttpResponse response = httpClient.execute(postRequest)) {
                 String resXmlString = EntityUtils.toString(response.getEntity(), UTF_8);
                 log.info("XML Response: {}", resXmlString);
@@ -239,9 +236,8 @@ public class HttpSender {
     }
 
     protected String execute(HttpRequestBase request, Header... headers) throws IOException {
-        request.setConfig(createRequestConfig());
-        if (!commonHeaders.isEmpty()) {
-            commonHeaders.forEach(request::setHeader);
+        if (!defaultHeaders.isEmpty()) {
+            defaultHeaders.forEach(request::setHeader);
         }
         if (headers.length > 0) {
             Arrays.stream(headers).forEach(request::setHeader);
@@ -303,8 +299,8 @@ public class HttpSender {
                     // TODO send `multipart/form-data` request
                 }
             }
-            if (!commonHeaders.isEmpty()) {
-                commonHeaders.forEach(boundRequestBuilder::setHeader);
+            if (!defaultHeaders.isEmpty()) {
+                defaultHeaders.forEach(boundRequestBuilder::setHeader);
             }
             if (headers.length > 0) {
                 for (Header header : headers) {
@@ -369,15 +365,6 @@ public class HttpSender {
         }
     }
 
-    private RequestConfig createRequestConfig() {
-        return RequestConfig
-                .custom()
-                .setConnectTimeout(timeout)
-                .setConnectionRequestTimeout(timeout)
-                .setSocketTimeout(timeout)
-                .build();
-    }
-
     public static class Builder {
 
         private int timeout;
@@ -385,7 +372,7 @@ public class HttpSender {
         private boolean useAsync;
         private boolean ignoreSSL;
         private boolean printResponseBody;
-        private Map<String, String> commonHeaders;
+        private Map<String, String> defaultHeaders;
         private SSLContext sslContext;
         private SSLConnectionSocketFactory sslSocketFactory;
         private SslContext nettySslContext;
@@ -400,7 +387,7 @@ public class HttpSender {
         public Builder() {
             this.timeout = 60_000;
             this.maxRetry = 3;
-            this.commonHeaders = Collections.emptyMap();
+            this.defaultHeaders = Collections.emptyMap();
             this.marshaller = new StandardMarshaller();
             this.unmarshaller = new DefaultUnmarshaller();
             this.httpClientBuilder = HttpClients.custom();
@@ -432,8 +419,8 @@ public class HttpSender {
             return this;
         }
 
-        public final Builder setCommonHeaders(final Map<String, String> commonHeaders) {
-            this.commonHeaders = commonHeaders;
+        public final Builder setDefaultHeaders(final Map<String, String> defaultHeaders) {
+            this.defaultHeaders = defaultHeaders;
             return this;
         }
 
@@ -507,6 +494,24 @@ public class HttpSender {
                         this.asyncHttpClientConfigBuilder.setSslEngineFactory(sslEngineFactory);
                     }
                 }
+            } else {
+                if (!defaultHeaders.isEmpty()) {
+                    this.httpClientBuilder.setDefaultHeaders(
+                            defaultHeaders
+                                    .entrySet()
+                                    .stream()
+                                    .map((entry -> new BasicHeader(entry.getKey(), entry.getValue())))
+                                    .collect(Collectors.toList())
+                    );
+                }
+
+                final RequestConfig config = RequestConfig
+                        .custom()
+                        .setConnectTimeout(timeout)
+                        .setConnectionRequestTimeout(timeout)
+                        .setSocketTimeout(timeout)
+                        .build();
+                this.httpClientBuilder.setDefaultRequestConfig(config);
             }
 
             if (ignoreSSL) {
@@ -560,11 +565,11 @@ public class HttpSender {
             });
 
             // Considering every request has different `Content-Type`.
-            if (commonHeaders.containsKey(CONTENT_TYPE)) {
-                commonHeaders.remove(CONTENT_TYPE);
+            if (defaultHeaders.containsKey(CONTENT_TYPE)) {
+                defaultHeaders.remove(CONTENT_TYPE);
             }
 
-            return new HttpSender(timeout, useAsync, printResponseBody, commonHeaders,
+            return new HttpSender(useAsync, printResponseBody, defaultHeaders,
                     marshaller, unmarshaller, httpClientBuilder, asyncHttpClientConfigBuilder);
         }
     }
