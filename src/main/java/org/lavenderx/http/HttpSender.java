@@ -204,10 +204,10 @@ public class HttpSender {
         }
     }
 
-    public final <T, R> R sendByXml(String url, T request, Class<T> reqClass, Class<R> resClass, Header... headers)
+    public final <T, R> R sendByXml(String url, T request, Class<R> resClass, Header... headers)
             throws SenderException {
         try {
-            JAXBContext context = JAXBContext.newInstance(reqClass);
+            JAXBContext context = JAXBContext.newInstance(request.getClass());
 
             javax.xml.bind.Marshaller marshaller = context.createMarshaller();
             marshaller.setProperty(JAXB_ENCODING, UTF_8.name());
