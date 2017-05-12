@@ -26,10 +26,8 @@ public @interface JacksonProperty {
         URL,
 
         /**
-         * After serialize, the current parameter will only exist in POST body.
+         * After serialize, the current parameter will exist in both URL and POST body.
          */
-        POST,
-
         ALL
     }
 }

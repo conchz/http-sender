@@ -10,6 +10,7 @@ import org.lavenderx.http.annotation.HttpOption;
 import org.lavenderx.http.annotation.JacksonProperty;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.StringJoiner;
@@ -38,15 +39,22 @@ public class StandardMarshaller implements Marshaller {
             HttpMethod method = httpOption.method();
             String requestUrl = httpOption.url();
             String requestString = mapper.writeValueAsString(obj);
-            final Map<String, String> requestParams = mapper.readValue(requestString, new TypeReference<Map<String, String>>() {
+            final Map<String, Object> requestParams = mapper.readValue(requestString, new TypeReference<Map<String, Object>>() {
             });
 
             final StringJoiner urlParams = new StringJoiner("&");
-            for (Map.Entry<String, String> entry : requestParams.entrySet()) {
+            for (Map.Entry<String, Object> entry : requestParams.entrySet()) {
+                if (entry.getValue().getClass().isArray()
+                        || entry.getValue() instanceof List<?>
+                        || entry.getValue() instanceof Map<?, ?>) {
+                    continue;
+                }
+
                 if (requestUrl.contains(entry.getKey())) {
-                    requestUrl = requestUrl.replaceAll("\\{" + entry.getKey() + "\\}", encodeQueryElement(entry.getValue()));
+                    requestUrl = requestUrl.replaceAll("\\{" + entry.getKey() + "\\}",
+                            encodeQueryElement((String) entry.getValue()));
                 } else {
-                    if (isNotEmpty(entry.getValue())) {
+                    if (isNotEmpty((String) entry.getValue())) {
                         urlParams.add(entry.getKey() + "=" + entry.getValue());
                     }
                 }
