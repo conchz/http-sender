@@ -52,9 +52,9 @@ public class StandardMarshaller implements Marshaller {
 
                 if (requestUrl.contains(entry.getKey())) {
                     requestUrl = requestUrl.replaceAll("\\{" + entry.getKey() + "\\}",
-                            encodeQueryElement((String) entry.getValue()));
+                            encodeQueryElement(entry.getValue().toString()));
                 } else {
-                    if (isNotEmpty((String) entry.getValue())) {
+                    if (isNotEmpty(entry.getValue().toString())) {
                         urlParams.add(entry.getKey() + "=" + entry.getValue());
                     }
                 }
