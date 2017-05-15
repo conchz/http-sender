@@ -74,11 +74,7 @@ import static javax.xml.bind.Marshaller.JAXB_FORMATTED_OUTPUT;
 import static javax.xml.bind.Marshaller.JAXB_FRAGMENT;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
-import static org.apache.http.HttpStatus.SC_BAD_GATEWAY;
-import static org.apache.http.HttpStatus.SC_GATEWAY_TIMEOUT;
-import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
-import static org.apache.http.HttpStatus.SC_OK;
-import static org.apache.http.HttpStatus.SC_SERVICE_UNAVAILABLE;
+import static org.apache.http.HttpStatus.*;
 import static org.apache.http.entity.ContentType.APPLICATION_FORM_URLENCODED;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 import static org.apache.http.entity.ContentType.MULTIPART_FORM_DATA;
@@ -149,10 +145,10 @@ public class HttpSender {
                         request.setEntity(new StringEntity(marshalResult.requestBody().toString(), contentType));
                         responseString = execute(request, headers);
                     } else if (Objects.equals(APPLICATION_FORM_URLENCODED.getMimeType(), contentType.getMimeType())) {
-                        List<NameValuePair> parameters = ((Map<String, String>) marshalResult.requestBody())
+                        List<NameValuePair> parameters = ((Map<String, Object>) marshalResult.requestBody())
                                 .entrySet()
                                 .stream()
-                                .map(entry -> new BasicNameValuePair(entry.getKey(), entry.getValue()))
+                                .map(entry -> new BasicNameValuePair(entry.getKey(), entry.getValue().toString()))
                                 .collect(Collectors.toList());
 
                         request.setHeader(CONTENT_TYPE, contentType.getMimeType());

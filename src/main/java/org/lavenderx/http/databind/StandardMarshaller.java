@@ -44,18 +44,20 @@ public class StandardMarshaller implements Marshaller {
 
             final StringJoiner urlParams = new StringJoiner("&");
             for (Map.Entry<String, Object> entry : requestParams.entrySet()) {
-                if (entry.getValue().getClass().isArray()
+                if (Objects.isNull(entry.getValue())
+                        || entry.getValue().getClass().isArray()
                         || entry.getValue() instanceof List<?>
                         || entry.getValue() instanceof Map<?, ?>) {
                     continue;
                 }
 
-                if (requestUrl.contains(entry.getKey())) {
-                    requestUrl = requestUrl.replaceAll("\\{" + entry.getKey() + "\\}",
-                            encodeQueryElement(entry.getValue().toString()));
-                } else {
-                    if (isNotEmpty(entry.getValue().toString())) {
-                        urlParams.add(entry.getKey() + "=" + entry.getValue());
+                String value = entry.getValue().toString();
+                if (value.trim().length() > 0) {
+                    if (requestUrl.contains("{" + entry.getKey() + "}")) {
+                        requestUrl = requestUrl.replaceAll("\\{" + entry.getKey() + "\\}",
+                                encodeQueryElement(value));
+                    } else {
+                        urlParams.add(entry.getKey() + "=" + encodeQueryElement(value));
                     }
                 }
             }
