@@ -26,7 +26,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.client.StandardHttpRequestRetryHandler;
-import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.ssl.SSLContextBuilder;
@@ -480,8 +479,9 @@ public class HttpSender {
 
         public final HttpSender build() {
             if (useAsync) {
-                this.asyncHttpClientConfigBuilder.setReadTimeout(timeout);
+                this.asyncHttpClientConfigBuilder.setHandshakeTimeout(timeout);
                 this.asyncHttpClientConfigBuilder.setConnectTimeout(timeout);
+                this.asyncHttpClientConfigBuilder.setReadTimeout(timeout);
                 this.asyncHttpClientConfigBuilder.setRequestTimeout(timeout);
                 this.asyncHttpClientConfigBuilder.setMaxRequestRetry(maxRetry);
                 this.asyncHttpClientConfigBuilder.setCompressionEnforced(true);
@@ -503,16 +503,6 @@ public class HttpSender {
                     }
                 }
             } else {
-                if (!defaultHeaders.isEmpty()) {
-                    this.httpClientBuilder.setDefaultHeaders(
-                            defaultHeaders
-                                    .entrySet()
-                                    .stream()
-                                    .map((entry -> new BasicHeader(entry.getKey(), entry.getValue())))
-                                    .collect(Collectors.toList())
-                    );
-                }
-
                 final RequestConfig config = RequestConfig
                         .custom()
                         .setConnectTimeout(timeout)
