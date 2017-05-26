@@ -264,13 +264,12 @@ public class HttpSender {
         try (CloseableHttpClient client = httpClientBuilder.build();
              CloseableHttpResponse response = client.execute(request)) {
             int statusCode = response.getStatusLine().getStatusCode();
+            String responseString = nonNull(response.getEntity()) ? EntityUtils.toString(response.getEntity(), UTF_8) : EMPTY;
             if (SC_OK != statusCode) {
-                log.error("statusCode: {}, response: {}",
-                        statusCode,
-                        nonNull(response.getEntity()) ? EntityUtils.toString(response.getEntity(), UTF_8) : EMPTY);
+                log.error("statusCode: {}, response: {}", statusCode, responseString);
                 throw new SenderException(response.getStatusLine().getReasonPhrase());
             }
-            return EntityUtils.toString(response.getEntity(), UTF_8);
+            return responseString;
         } catch (IOException e) {
             throw new SenderException(e);
         }
