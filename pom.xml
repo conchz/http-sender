@@ -42,8 +42,8 @@
 
     <properties>
         <httpClientVersion>4.5.3</httpClientVersion>
-        <asyncHttpClientVersion>2.0.31</asyncHttpClientVersion>
-        <jacksonVersion>2.8.8</jacksonVersion>
+        <asyncHttpClientVersion>2.0.33</asyncHttpClientVersion>
+        <jacksonVersion>2.8.9</jacksonVersion>
     </properties>
 
     <repositories>
@@ -88,14 +88,19 @@
             <version>${jacksonVersion}</version>
         </dependency>
         <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>${jacksonVersion}</version>
+        </dependency>
+        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>21.0</version>
+            <version>22.0</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.16.16</version>
+            <version>1.16.18</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>

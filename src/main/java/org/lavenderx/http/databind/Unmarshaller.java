@@ -1,21 +1,15 @@
 package org.lavenderx.http.databind;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.lavenderx.http.SenderException;
+import org.lavenderx.http.utils.JacksonUtils;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 public abstract class Unmarshaller {
 
-    protected static ObjectMapper mapper = new ObjectMapper();
-
-    static {
-        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        mapper.setAnnotationIntrospector(new JacksonLombokAnnotationIntrospector());
-    }
+    protected static ObjectMapper mapper = JacksonUtils.getObjectMapper();
 
     public <T> T unmarshal(String content, TypeReference<T> valueTypeRef) {
         if (isEmpty(content)) {

@@ -1,13 +1,12 @@
 package org.lavenderx.http.databind;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.lavenderx.http.HttpMethod;
 import org.lavenderx.http.SenderException;
 import org.lavenderx.http.annotation.HttpOption;
 import org.lavenderx.http.annotation.JacksonProperty;
+import org.lavenderx.http.utils.JacksonUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -24,13 +23,7 @@ import static org.lavenderx.http.HttpMethod.POST;
 
 public class StandardMarshaller implements Marshaller {
 
-    private static ObjectMapper mapper = new ObjectMapper();
-
-    static {
-        mapper.enable(MapperFeature.USE_STD_BEAN_NAMING);
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
-        mapper.setAnnotationIntrospector(new JacksonLombokAnnotationIntrospector());
-    }
+    private static ObjectMapper mapper = JacksonUtils.getObjectMapper();
 
     @Override
     public MarshalResult marshal(Object obj) {
