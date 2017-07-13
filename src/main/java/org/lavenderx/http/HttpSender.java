@@ -170,14 +170,18 @@ public class HttpSender {
                     throw new SenderException("Unsupported HTTP method: " + method);
             }
             if (printResponseBody) {
-                log.info("Sync response Body: {}", responseString);
+                log.info("Response body: {}", responseString);
             }
 
+            T res;
             if (resType instanceof TypeReference<?>) {
-                return unmarshaller.unmarshal(responseString, (TypeReference<T>) resType);
+                res = unmarshaller.unmarshal(responseString, (TypeReference<T>) resType);
             } else {
-                return unmarshaller.unmarshal(responseString, (Class<T>) resType);
+                res = unmarshaller.unmarshal(responseString, (Class<T>) resType);
             }
+            log.info("Response object: {}", res);
+
+            return res;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new SenderException(e);
@@ -253,12 +257,12 @@ public class HttpSender {
             HttpEntity httpPostEntity = ((HttpPost) request).getEntity();
             if (!Objects.equals(MULTIPART_FORM_DATA.getMimeType(),
                     ContentType.get(httpPostEntity).getMimeType())) {
-                log.info("Sync request: {requestLine={}, requestBody={}}",
+                log.info("Request: {requestLine={}, requestBody={}}",
                         ToStringBuilder.reflectionToString(request.getRequestLine(), NON_NULL_JSON_STYLE),
                         EntityUtils.toString(httpPostEntity, UTF_8));
             }
         } else {
-            log.info("Sync request: {}", ToStringBuilder.reflectionToString(request.getRequestLine(), NON_NULL_JSON_STYLE));
+            log.info("Request: {}", ToStringBuilder.reflectionToString(request.getRequestLine(), NON_NULL_JSON_STYLE));
         }
 
         try (CloseableHttpClient client = httpClientBuilder.build();
