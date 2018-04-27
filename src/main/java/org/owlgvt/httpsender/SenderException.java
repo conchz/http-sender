@@ -1,4 +1,4 @@
-package org.lavenderx.http;
+package org.owlgvt.httpsender;
 
 public class SenderException extends RuntimeException {
 

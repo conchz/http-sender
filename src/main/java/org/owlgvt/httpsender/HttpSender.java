@@ -1,4 +1,4 @@
-package org.lavenderx.http;
+package org.owlgvt.httpsender;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import io.netty.handler.ssl.SslContext;
@@ -39,12 +39,13 @@ import org.asynchttpclient.Param;
 import org.asynchttpclient.Response;
 import org.asynchttpclient.SslEngineFactory;
 import org.asynchttpclient.netty.ssl.InsecureTrustManagerFactory;
-import org.lavenderx.http.annotation.HttpOption;
-import org.lavenderx.http.databind.DefaultUnmarshaller;
-import org.lavenderx.http.databind.MarshalResult;
-import org.lavenderx.http.databind.Marshaller;
-import org.lavenderx.http.databind.StandardMarshaller;
-import org.lavenderx.http.databind.Unmarshaller;
+import org.owlgvt.httpsender.annotation.HttpOption;
+import org.owlgvt.httpsender.databind.DefaultUnmarshaller;
+import org.owlgvt.httpsender.databind.MarshalResult;
+import org.owlgvt.httpsender.databind.Marshaller;
+import org.owlgvt.httpsender.databind.StandardMarshaller;
+import org.owlgvt.httpsender.databind.Unmarshaller;
+import org.owlgvt.httpsender.utils.NonNullToStringStyle;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
@@ -67,20 +68,21 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Objects.nonNull;
 import static javax.xml.bind.Marshaller.JAXB_ENCODING;
 import static javax.xml.bind.Marshaller.JAXB_FORMATTED_OUTPUT;
 import static javax.xml.bind.Marshaller.JAXB_FRAGMENT;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
-import static org.apache.http.HttpStatus.*;
+import static org.apache.http.HttpStatus.SC_BAD_GATEWAY;
+import static org.apache.http.HttpStatus.SC_GATEWAY_TIMEOUT;
+import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
+import static org.apache.http.HttpStatus.SC_OK;
+import static org.apache.http.HttpStatus.SC_SERVICE_UNAVAILABLE;
 import static org.apache.http.entity.ContentType.APPLICATION_FORM_URLENCODED;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 import static org.apache.http.entity.ContentType.MULTIPART_FORM_DATA;
 import static org.apache.http.entity.ContentType.TEXT_XML;
 import static org.asynchttpclient.Dsl.asyncHttpClient;
-import static org.lavenderx.http.HttpMethod.POST;
-import static org.lavenderx.http.utils.NonNullToStringStyle.NON_NULL_JSON_STYLE;
 
 @Slf4j
 public class HttpSender {
@@ -183,7 +185,6 @@ public class HttpSender {
 
             return res;
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
             throw new SenderException(e);
         }
     }
@@ -198,7 +199,6 @@ public class HttpSender {
             MarshalResult marshalResult = marshaller.marshal(req);
             return executeAsync(rootUrl, req.getClass().getAnnotation(HttpOption.class), marshalResult, resType, headers);
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
             throw new SenderException(e);
         }
     }
@@ -241,7 +241,6 @@ public class HttpSender {
                 return jaxbElement.getValue();
             }
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
             throw new SenderException(e);
         }
     }
@@ -258,19 +257,19 @@ public class HttpSender {
             if (!Objects.equals(MULTIPART_FORM_DATA.getMimeType(),
                     ContentType.get(httpPostEntity).getMimeType())) {
                 log.info("Request: {requestLine={}, requestBody={}}",
-                        ToStringBuilder.reflectionToString(request.getRequestLine(), NON_NULL_JSON_STYLE),
+                        ToStringBuilder.reflectionToString(request.getRequestLine(), NonNullToStringStyle.NON_NULL_JSON_STYLE),
                         EntityUtils.toString(httpPostEntity, UTF_8));
             }
         } else {
-            log.info("Request: {}", ToStringBuilder.reflectionToString(request.getRequestLine(), NON_NULL_JSON_STYLE));
+            log.info("Request: {}", ToStringBuilder.reflectionToString(request.getRequestLine(), NonNullToStringStyle.NON_NULL_JSON_STYLE));
         }
 
         try (CloseableHttpClient client = httpClientBuilder.build();
              CloseableHttpResponse response = client.execute(request)) {
             int statusCode = response.getStatusLine().getStatusCode();
-            String responseString = nonNull(response.getEntity()) ? EntityUtils.toString(response.getEntity(), UTF_8) : EMPTY;
+            String responseString = Objects.nonNull(response.getEntity()) ? EntityUtils.toString(response.getEntity(), UTF_8) : EMPTY;
             if (SC_OK != statusCode) {
-                log.error("statusCode: {}, response: {}", statusCode, responseString);
+                log.warn("statusCode: {}, response: {}", statusCode, responseString);
                 throw new SenderException(response.getStatusLine().getReasonPhrase());
             }
             return responseString;
@@ -295,7 +294,7 @@ public class HttpSender {
             boundRequestBuilder.setUrl(requestUrl)
                     .setCharset(UTF_8)
                     .setHeader(CONTENT_TYPE, mimeType);
-            if (POST == method) {
+            if (HttpMethod.POST == method) {
                 if (Objects.equals(APPLICATION_JSON.getMimeType(), mimeType)) {
                     boundRequestBuilder.setBody(marshalResult.requestBody().toString());
                 } else if (Objects.equals(APPLICATION_FORM_URLENCODED.getMimeType(), mimeType)) {
@@ -325,7 +324,7 @@ public class HttpSender {
                 public R onCompleted(Response response) throws Exception {
                     int statusCode = response.getStatusCode();
                     if (SC_OK != statusCode) {
-                        log.error("statusCode: {}, response: {}", statusCode, response.getStatusText());
+                        log.warn("statusCode: {}, response: {}", statusCode, response.getStatusText());
                         throw new SenderException(response.getStatusText());
                     }
 
@@ -341,7 +340,6 @@ public class HttpSender {
                             return unmarshaller.unmarshal(responseString, (Class<R>) resType);
                         }
                     } catch (Exception e) {
-                        log.error(e.getMessage(), e);
                         throw new SenderException(e);
                     } finally {
                         if (!asyncHttpClient.isClosed()) {
@@ -363,14 +361,12 @@ public class HttpSender {
                         }
                     }
 
-                    log.error(t.getMessage(), t);
                     throw new SenderException(t);
                 }
             });
 
             return rFuture;
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
             throw new SenderException(e);
         }
     }
@@ -498,10 +494,10 @@ public class HttpSender {
                         throw new SenderException("Ignore SSL certificate failed", e);
                     }
                 } else {
-                    if (nonNull(nettySslContext)) {
+                    if (Objects.nonNull(nettySslContext)) {
                         this.asyncHttpClientConfigBuilder.setSslContext(nettySslContext);
                     }
-                    if (nonNull(sslEngineFactory)) {
+                    if (Objects.nonNull(sslEngineFactory)) {
                         this.asyncHttpClientConfigBuilder.setSslEngineFactory(sslEngineFactory);
                     }
                 }
@@ -532,10 +528,10 @@ public class HttpSender {
                     throw new SenderException("Ignore SSL certificate failed", e);
                 }
             } else {
-                if (nonNull(sslContext)) {
+                if (Objects.nonNull(sslContext)) {
                     this.httpClientBuilder.setSSLContext(sslContext);
                 }
-                if (nonNull(sslSocketFactory)) {
+                if (Objects.nonNull(sslSocketFactory)) {
                     this.httpClientBuilder.setSSLSocketFactory(sslSocketFactory);
                 }
             }
@@ -567,9 +563,7 @@ public class HttpSender {
             });
 
             // Considering every request has different `Content-Type`.
-            if (defaultHeaders.containsKey(CONTENT_TYPE)) {
-                defaultHeaders.remove(CONTENT_TYPE);
-            }
+            defaultHeaders.remove(CONTENT_TYPE);
 
             return new HttpSender(useAsync, printResponseBody, defaultHeaders,
                     marshaller, unmarshaller, httpClientBuilder, asyncHttpClientConfigBuilder);

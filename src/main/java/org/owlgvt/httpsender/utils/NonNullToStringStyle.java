@@ -1,4 +1,4 @@
-package org.lavenderx.http.utils;
+package org.owlgvt.httpsender.utils;
 
 import org.apache.commons.lang3.builder.ToStringStyle;
 

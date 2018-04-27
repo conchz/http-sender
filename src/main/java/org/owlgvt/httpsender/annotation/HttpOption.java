@@ -1,6 +1,6 @@
-package org.lavenderx.http.annotation;
+package org.owlgvt.httpsender.annotation;
 
-import org.lavenderx.http.HttpMethod;
+import org.owlgvt.httpsender.HttpMethod;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

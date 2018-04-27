@@ -4,31 +4,31 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.lavenderx</groupId>
+    <groupId>org.owlgvt</groupId>
     <artifactId>http-sender</artifactId>
     <name>http-sender</name>
     <version>1.0-SNAPSHOT</version>
 
     <description>
-        A HTTP client sender framework based on httpclient and async-http-client.
+        A HTTP sender framework based on httpclient and async-http-client.
     </description>
 
-    <url>https://github.com/lavenderx/http-sender</url>
+    <url>https://github.com/owlgvt/http-sender</url>
 
     <developers>
         <developer>
-            <id>lavenderx</id>
+            <id>owlgvt</id>
             <name>Zongzhi Bai</name>
             <email>dolphineor@gmail.com</email>
-            <url>https://github.com/lavenderx</url>
+            <url>https://github.com/owlgvt</url>
         </developer>
     </developers>
 
     <!-- https://maven.apache.org/scm/git.html -->
     <scm>
-        <url>https://github.com/lavenderx/http-sender</url>
-        <connection>scm:git:git://github.com/lavenderx/http-sender.git</connection>
-        <developerConnection>scm:git:git@github.com:lavenderx/http-sender.git</developerConnection>
+        <url>https://github.com/owlgvt/http-sender</url>
+        <connection>scm:git:git://github.com/owlgvt/http-sender.git</connection>
+        <developerConnection>scm:git:git@github.com:owlgvt/http-sender.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
@@ -41,9 +41,11 @@
     </licenses>
 
     <properties>
-        <httpClientVersion>4.5.3</httpClientVersion>
-        <asyncHttpClientVersion>2.0.33</asyncHttpClientVersion>
-        <jacksonVersion>2.8.9</jacksonVersion>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java.version>1.8</java.version>
+        <http.client.version>4.5.5</http.client.version>
+        <async.http.client.version>2.0.39</async.http.client.version>
+        <jackson.version>2.9.5</jackson.version>
     </properties>
 
     <repositories>
@@ -57,13 +59,18 @@
             <id>sonatype-releases</id>
             <url>https://oss.sonatype.org/content/repositories/releases/</url>
         </repository>
+
+        <repository>
+            <id>aliyun</id>
+            <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+        </repository>
     </repositories>
 
     <dependencies>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>${httpClientVersion}</version>
+            <version>${http.client.version}</version>
             <exclusions>
                 <exclusion>
                     <artifactId>commons-logging</artifactId>
@@ -74,43 +81,44 @@
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpmime</artifactId>
-            <version>${httpClientVersion}</version>
+            <version>${http.client.version}</version>
         </dependency>
         <!-- https://github.com/AsyncHttpClient/async-http-client -->
         <dependency>
             <groupId>org.asynchttpclient</groupId>
             <artifactId>async-http-client</artifactId>
-            <version>${asyncHttpClientVersion}</version>
+            <version>${async.http.client.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>${jacksonVersion}</version>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>${jacksonVersion}</version>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>22.0</version>
+            <version>23.0</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.16.18</version>
+            <version>1.16.20</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.5</version>
+            <version>3.7</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.5</version>
+            <version>2.6</version>
         </dependency>
         <dependency>
             <groupId>org.testng</groupId>
@@ -131,11 +139,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.6.1</version>
+                <version>3.7.0</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                    <encoding>UTF-8</encoding>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
             </plugin>
             <plugin>
@@ -143,7 +151,7 @@
                 <artifactId>maven-resources-plugin</artifactId>
                 <version>3.0.2</version>
                 <configuration>
-                    <encoding>UTF-8</encoding>
+                    <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
             </plugin>
             <plugin>
@@ -164,7 +172,7 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>2.10.4</version>
                 <configuration>
-                    <encoding>UTF-8</encoding>
+                    <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
                 <executions>
                     <execution>
