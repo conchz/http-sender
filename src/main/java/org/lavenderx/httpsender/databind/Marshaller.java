@@ -1,4 +1,4 @@
-package org.owlgvt.httpsender.databind;
+package org.lavenderx.httpsender.databind;
 
 @FunctionalInterface
 public interface Marshaller {

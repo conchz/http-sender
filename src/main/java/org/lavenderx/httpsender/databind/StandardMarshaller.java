@@ -1,12 +1,12 @@
-package org.owlgvt.httpsender.databind;
+package org.lavenderx.httpsender.databind;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.owlgvt.httpsender.HttpMethod;
-import org.owlgvt.httpsender.SenderException;
-import org.owlgvt.httpsender.annotation.HttpOption;
-import org.owlgvt.httpsender.annotation.JacksonProperty;
-import org.owlgvt.httpsender.utils.JacksonUtils;
+import org.lavenderx.httpsender.annotation.HttpOption;
+import org.lavenderx.httpsender.annotation.JacksonProperty;
+import org.lavenderx.httpsender.HttpMethod;
+import org.lavenderx.httpsender.SenderException;
+import org.lavenderx.httpsender.utils.JacksonUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -18,8 +18,8 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.http.entity.ContentType.APPLICATION_FORM_URLENCODED;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 import static org.asynchttpclient.util.Utf8UrlEncoder.encodeQueryElement;
-import static org.owlgvt.httpsender.HttpMethod.GET;
-import static org.owlgvt.httpsender.HttpMethod.POST;
+import static org.lavenderx.httpsender.HttpMethod.GET;
+import static org.lavenderx.httpsender.HttpMethod.POST;
 
 public class StandardMarshaller implements Marshaller {
 

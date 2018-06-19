@@ -1,4 +1,4 @@
-package org.owlgvt.httpsender.databind;
+package org.lavenderx.httpsender.databind;
 
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.core.Versioned;
@@ -9,8 +9,8 @@ import com.fasterxml.jackson.databind.introspect.AnnotatedClass;
 import com.fasterxml.jackson.databind.introspect.AnnotatedField;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.google.common.base.Preconditions;
-import org.owlgvt.httpsender.annotation.JacksonNaming;
-import org.owlgvt.httpsender.annotation.JacksonProperty;
+import org.lavenderx.httpsender.annotation.JacksonNaming;
+import org.lavenderx.httpsender.annotation.JacksonProperty;
 
 import java.lang.annotation.Annotation;
 import java.util.Objects;

@@ -1,4 +1,4 @@
-package org.owlgvt.httpsender;
+package org.lavenderx.httpsender;
 
 import java.util.HashMap;
 import java.util.Map;

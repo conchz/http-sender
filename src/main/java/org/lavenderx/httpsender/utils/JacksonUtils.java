@@ -1,4 +1,4 @@
-package org.owlgvt.httpsender.utils;
+package org.lavenderx.httpsender.utils;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -20,7 +20,7 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
-import org.owlgvt.httpsender.databind.JacksonLombokAnnotationIntrospector;
+import org.lavenderx.httpsender.databind.JacksonLombokAnnotationIntrospector;
 
 import java.io.IOException;
 import java.time.Instant;

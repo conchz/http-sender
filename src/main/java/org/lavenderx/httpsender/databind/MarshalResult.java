@@ -1,7 +1,7 @@
-package org.owlgvt.httpsender.databind;
+package org.lavenderx.httpsender.databind;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.owlgvt.httpsender.utils.NonNullToStringStyle;
+import org.lavenderx.httpsender.utils.NonNullToStringStyle;
 
 import java.io.Serializable;
 

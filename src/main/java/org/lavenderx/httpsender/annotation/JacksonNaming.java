@@ -1,4 +1,4 @@
-package org.owlgvt.httpsender.annotation;
+package org.lavenderx.httpsender.annotation;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 

@@ -1,6 +1,6 @@
-package org.owlgvt.httpsender.databind;
+package org.lavenderx.httpsender.databind;
 
-import org.owlgvt.httpsender.SenderException;
+import org.lavenderx.httpsender.SenderException;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 

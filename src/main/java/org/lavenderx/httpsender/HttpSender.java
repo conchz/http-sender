@@ -1,4 +1,4 @@
-package org.owlgvt.httpsender;
+package org.lavenderx.httpsender;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import io.netty.handler.ssl.SslContext;
@@ -39,13 +39,13 @@ import org.asynchttpclient.Param;
 import org.asynchttpclient.Response;
 import org.asynchttpclient.SslEngineFactory;
 import org.asynchttpclient.netty.ssl.InsecureTrustManagerFactory;
-import org.owlgvt.httpsender.annotation.HttpOption;
-import org.owlgvt.httpsender.databind.DefaultUnmarshaller;
-import org.owlgvt.httpsender.databind.MarshalResult;
-import org.owlgvt.httpsender.databind.Marshaller;
-import org.owlgvt.httpsender.databind.StandardMarshaller;
-import org.owlgvt.httpsender.databind.Unmarshaller;
-import org.owlgvt.httpsender.utils.NonNullToStringStyle;
+import org.lavenderx.httpsender.annotation.HttpOption;
+import org.lavenderx.httpsender.databind.DefaultUnmarshaller;
+import org.lavenderx.httpsender.databind.MarshalResult;
+import org.lavenderx.httpsender.databind.Marshaller;
+import org.lavenderx.httpsender.databind.StandardMarshaller;
+import org.lavenderx.httpsender.databind.Unmarshaller;
+import org.lavenderx.httpsender.utils.NonNullToStringStyle;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
