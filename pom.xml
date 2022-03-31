@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.lavenderx</groupId>
+    <groupId>com.github.conchz</groupId>
     <artifactId>http-sender</artifactId>
     <name>http-sender</name>
     <version>1.0-SNAPSHOT</version>
@@ -13,22 +13,22 @@
         A HTTP sender framework based on httpclient and async-http-client.
     </description>
 
-    <url>https://github.com/lavenderx/http-sender</url>
+    <url>https://github.com/conchz/http-sender</url>
 
     <developers>
         <developer>
-            <id>lavenderx</id>
+            <id>conchz</id>
             <name>Zongzhi Bai</name>
             <email>dolphineor@gmail.com</email>
-            <url>https://github.com/lavenderx</url>
+            <url>https://github.com/conchz</url>
         </developer>
     </developers>
 
     <!-- https://maven.apache.org/scm/git.html -->
     <scm>
-        <url>https://github.com/lavenderx/http-sender</url>
-        <connection>scm:git:git://github.com/lavenderx/http-sender.git</connection>
-        <developerConnection>scm:git:git@github.com:lavenderx/http-sender.git</developerConnection>
+        <url>https://github.com/conchz/http-sender</url>
+        <connection>scm:git:git://github.com/conchz/http-sender.git</connection>
+        <developerConnection>scm:git:git@github.com:conchz/http-sender.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
@@ -43,9 +43,9 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
-        <http.client.version>4.5.5</http.client.version>
-        <async.http.client.version>2.0.39</async.http.client.version>
-        <jackson.version>2.9.6</jackson.version>
+        <http.client.version>4.5.13</http.client.version>
+        <async.http.client.version>2.0.40</async.http.client.version>
+        <jackson.version>2.12.6</jackson.version>
     </properties>
 
     <repositories>
@@ -83,7 +83,6 @@
             <artifactId>httpmime</artifactId>
             <version>${http.client.version}</version>
         </dependency>
-        <!-- https://github.com/AsyncHttpClient/async-http-client -->
         <dependency>
             <groupId>org.asynchttpclient</groupId>
             <artifactId>async-http-client</artifactId>
@@ -107,30 +106,13 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.16.20</version>
+            <version>1.18.22</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.7</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>2.6</version>
-        </dependency>
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <version>6.11</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>2.7.22</version>
-            <scope>test</scope>
+            <version>3.9</version>
         </dependency>
     </dependencies>
 
@@ -139,7 +121,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.7.0</version>
+                <version>3.8.1</version>
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
@@ -149,7 +131,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>3.0.2</version>
+                <version>3.2.0</version>
                 <configuration>
                     <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
@@ -157,7 +139,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>3.0.1</version>
+                <version>3.2.1</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -170,7 +152,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.10.4</version>
+                <version>3.1.1</version>
                 <configuration>
                     <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
@@ -187,7 +169,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-scm-plugin</artifactId>
-                <version>1.9.5</version>
+                <version>1.11.2</version>
                 <configuration>
                     <connectionType>developerConnection</connectionType>
                 </configuration>

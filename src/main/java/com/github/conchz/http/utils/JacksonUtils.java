@@ -1,4 +1,4 @@
-package org.lavenderx.httpsender.utils;
+package com.github.conchz.http.utils;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -20,7 +20,6 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
-import org.lavenderx.httpsender.databind.JacksonLombokAnnotationIntrospector;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -40,7 +39,7 @@ public final class JacksonUtils {
         private static final ObjectMapper INSTANCE = new ObjectMapper();
 
         static {
-            configObjectMapper(INSTANCE);
+            configObjectMapper();
         }
     }
 
@@ -48,13 +47,12 @@ public final class JacksonUtils {
         return ObjectMapperHolder.INSTANCE;
     }
 
-    private static void configObjectMapper(final ObjectMapper mapper) {
-        mapper.enable(MapperFeature.USE_STD_BEAN_NAMING);
-        mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
-        mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-        mapper.setAnnotationIntrospector(new JacksonLombokAnnotationIntrospector());
+    private static void configObjectMapper() {
+        ObjectMapperHolder.INSTANCE.enable(MapperFeature.USE_STD_BEAN_NAMING);
+        ObjectMapperHolder.INSTANCE.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+        ObjectMapperHolder.INSTANCE.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        ObjectMapperHolder.INSTANCE.setSerializationInclusion(JsonInclude.Include.ALWAYS);
+        ObjectMapperHolder.INSTANCE.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
 
         JavaTimeModule javaTimeModule = new JavaTimeModule();
 
@@ -84,6 +82,6 @@ public final class JacksonUtils {
         javaTimeModule.addDeserializer(LocalTime.class, new LocalTimeDeserializer(DateTimeFormatter.ISO_LOCAL_TIME));
         javaTimeModule.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
 
-        mapper.registerModule(javaTimeModule);
+        ObjectMapperHolder.INSTANCE.registerModule(javaTimeModule);
     }
 }

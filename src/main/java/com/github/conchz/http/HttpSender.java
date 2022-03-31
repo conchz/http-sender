@@ -1,14 +1,25 @@
-package org.lavenderx.httpsender;
+package com.github.conchz.http;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.github.conchz.http.annotation.HttpOption;
+import com.github.conchz.http.databind.DefaultUnmarshaller;
+import com.github.conchz.http.databind.MarshalResult;
+import com.github.conchz.http.databind.Marshaller;
+import com.github.conchz.http.databind.StandardMarshaller;
+import com.github.conchz.http.databind.Unmarshaller;
+import com.github.conchz.http.utils.NonNullToStringStyle;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpEntityEnclosingRequest;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.NoHttpResponseException;
+import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.ServiceUnavailableRetryStrategy;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -16,6 +27,8 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.ContentType;
@@ -25,7 +38,6 @@ import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.client.StandardHttpRequestRetryHandler;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.ssl.SSLContextBuilder;
@@ -39,22 +51,19 @@ import org.asynchttpclient.Param;
 import org.asynchttpclient.Response;
 import org.asynchttpclient.SslEngineFactory;
 import org.asynchttpclient.netty.ssl.InsecureTrustManagerFactory;
-import org.lavenderx.httpsender.annotation.HttpOption;
-import org.lavenderx.httpsender.databind.DefaultUnmarshaller;
-import org.lavenderx.httpsender.databind.MarshalResult;
-import org.lavenderx.httpsender.databind.Marshaller;
-import org.lavenderx.httpsender.databind.StandardMarshaller;
-import org.lavenderx.httpsender.databind.Unmarshaller;
-import org.lavenderx.httpsender.utils.NonNullToStringStyle;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLHandshakeException;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.transform.stream.StreamSource;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -185,7 +194,11 @@ public class HttpSender {
 
             return res;
         } catch (Exception e) {
-            throw new SenderException(e);
+            if (e instanceof SenderException) {
+                throw (SenderException) e;
+            } else {
+                throw new SenderException(e);
+            }
         }
     }
 
@@ -273,8 +286,12 @@ public class HttpSender {
                 throw new SenderException(response.getStatusLine().getReasonPhrase());
             }
             return responseString;
-        } catch (IOException e) {
-            throw new SenderException(e);
+        } catch (Exception e) {
+            if (e instanceof SenderException) {
+                throw (SenderException) e;
+            } else {
+                throw new SenderException(e);
+            }
         }
     }
 
@@ -367,7 +384,11 @@ public class HttpSender {
 
             return rFuture;
         } catch (Exception e) {
-            throw new SenderException(e);
+            if (e instanceof SenderException) {
+                throw (SenderException) e;
+            } else {
+                throw new SenderException(e);
+            }
         }
     }
 
@@ -376,7 +397,7 @@ public class HttpSender {
         private int timeout;
         private int maxRetry;
         private boolean useAsync;
-        private boolean ignoreSSL;
+        private boolean ignoreSsl;
         private boolean printResponseBody;
         private Map<String, String> defaultHeaders;
         private SSLContext sslContext;
@@ -391,7 +412,7 @@ public class HttpSender {
         private final DefaultAsyncHttpClientConfig.Builder asyncHttpClientConfigBuilder;
 
         public Builder() {
-            this.timeout = 60_000;
+            this.timeout = 10_000;
             this.maxRetry = 3;
             this.defaultHeaders = Collections.emptyMap();
             this.marshaller = new StandardMarshaller();
@@ -415,8 +436,8 @@ public class HttpSender {
             return this;
         }
 
-        public final Builder ignoreSSL() {
-            this.ignoreSSL = true;
+        public final Builder ignoreSsl() {
+            this.ignoreSsl = true;
             return this;
         }
 
@@ -485,7 +506,7 @@ public class HttpSender {
                 this.asyncHttpClientConfigBuilder.setMaxRequestRetry(maxRetry);
                 this.asyncHttpClientConfigBuilder.setCompressionEnforced(true);
 
-                if (ignoreSSL) {
+                if (ignoreSsl) {
                     try {
                         SslContext sslContext = SslContextBuilder.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build();
                         this.asyncHttpClientConfigBuilder.setSslContext(sslContext);
@@ -511,14 +532,14 @@ public class HttpSender {
                 this.httpClientBuilder.setDefaultRequestConfig(config);
             }
 
-            if (ignoreSSL) {
+            if (ignoreSsl) {
                 try {
                     SSLContext sslContext = new SSLContextBuilder()
                             .loadTrustMaterial(null, (chain, authType) -> true).build();
 
                     SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(
                             sslContext,
-                            new String[]{"TLSv1"},
+                            new String[]{"TLSv1", "TLSv1.1", "TLSv1.2"},
                             null,
                             NoopHostnameVerifier.INSTANCE);
 
@@ -536,12 +557,43 @@ public class HttpSender {
                 }
             }
 
-            // Using `StandardHttpRequestRetryHandler` replace `DefaultHttpRequestRetryHandler`
-            this.httpClientBuilder.setRetryHandler(new StandardHttpRequestRetryHandler(maxRetry, true));
+            this.httpClientBuilder.setRetryHandler(new HttpRequestRetryHandler() {
+                @Override
+                public boolean retryRequest(IOException exception, int executionCount, HttpContext context) {
+                    if (executionCount >= maxRetry) {// 如果已经重试了3次，就放弃
+                        return false;
+                    }
+                    if (exception instanceof NoHttpResponseException) {// 如果服务器丢掉了连接，那么就重试
+                        return true;
+                    }
+                    if (exception instanceof ConnectTimeoutException) {// 连接被拒绝
+                        return false;
+                    }
+                    if (exception instanceof SocketTimeoutException) {// Socket超时
+                        return true;
+                    }
+                    if (exception instanceof InterruptedIOException) {// 超时
+                        return true;
+                    }
+                    if (exception instanceof UnknownHostException) {// 目标服务器不可达
+                        return false;
+                    }
+                    if (exception instanceof SSLHandshakeException) {// 不要重试SSL握手异常
+                        return false;
+                    }
+                    if (exception instanceof SSLException) {// SSL握手异常
+                        return false;
+                    }
+                    HttpClientContext clientContext = HttpClientContext.adapt(context);
+                    HttpRequest request = clientContext.getRequest();
+                    // 如果请求是幂等的，就再次尝试
+                    return !(request instanceof HttpEntityEnclosingRequest);
+                }
+            });
 
             // Add retry strategy when service unavailable
             this.httpClientBuilder.setServiceUnavailableRetryStrategy(new ServiceUnavailableRetryStrategy() {
-                private static final long RETRY_INTERVAL = 3_000;
+                private static final long RETRY_INTERVAL = 1000L;
                 private final Set<Integer> serviceUnavailableStatusCodes = new HashSet<>(
                         Arrays.asList(
                                 SC_INTERNAL_SERVER_ERROR,

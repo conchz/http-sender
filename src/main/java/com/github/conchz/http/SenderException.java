@@ -1,4 +1,4 @@
-package org.lavenderx.httpsender;
+package com.github.conchz.http;
 
 public class SenderException extends RuntimeException {
 

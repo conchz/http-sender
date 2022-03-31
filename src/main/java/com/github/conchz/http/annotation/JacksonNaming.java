@@ -1,5 +1,6 @@
-package org.lavenderx.httpsender.annotation;
+package com.github.conchz.http.annotation;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 
 import java.lang.annotation.ElementType;
@@ -11,5 +12,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface JacksonNaming {
 
-    Class<? extends PropertyNamingStrategy> value() default PropertyNamingStrategy.SnakeCaseStrategy.class;
+    Class<? extends PropertyNamingStrategy> value() default PropertyNamingStrategies.SnakeCaseStrategy.class;
 }

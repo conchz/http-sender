@@ -1,4 +1,4 @@
-package org.lavenderx.httpsender.annotation;
+package com.github.conchz.http.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

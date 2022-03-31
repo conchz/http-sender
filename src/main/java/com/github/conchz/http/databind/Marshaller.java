@@ -1,4 +1,4 @@
-package org.lavenderx.httpsender.databind;
+package com.github.conchz.http.databind;
 
 @FunctionalInterface
 public interface Marshaller {

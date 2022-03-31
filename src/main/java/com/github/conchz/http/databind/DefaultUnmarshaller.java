@@ -1,6 +1,6 @@
-package org.lavenderx.httpsender.databind;
+package com.github.conchz.http.databind;
 
-import org.lavenderx.httpsender.SenderException;
+import com.github.conchz.http.SenderException;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 

@@ -1,4 +1,4 @@
-package org.lavenderx.httpsender.utils;
+package com.github.conchz.http.utils;
 
 import org.apache.commons.lang3.builder.ToStringStyle;
 

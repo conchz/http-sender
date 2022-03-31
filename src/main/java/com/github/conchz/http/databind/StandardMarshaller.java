@@ -1,12 +1,12 @@
-package org.lavenderx.httpsender.databind;
+package com.github.conchz.http.databind;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.lavenderx.httpsender.annotation.HttpOption;
-import org.lavenderx.httpsender.annotation.JacksonProperty;
-import org.lavenderx.httpsender.HttpMethod;
-import org.lavenderx.httpsender.SenderException;
-import org.lavenderx.httpsender.utils.JacksonUtils;
+import com.github.conchz.http.HttpMethod;
+import com.github.conchz.http.SenderException;
+import com.github.conchz.http.annotation.HttpOption;
+import com.github.conchz.http.annotation.JacksonProperty;
+import com.github.conchz.http.utils.JacksonUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -18,8 +18,6 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.http.entity.ContentType.APPLICATION_FORM_URLENCODED;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 import static org.asynchttpclient.util.Utf8UrlEncoder.encodeQueryElement;
-import static org.lavenderx.httpsender.HttpMethod.GET;
-import static org.lavenderx.httpsender.HttpMethod.POST;
 
 public class StandardMarshaller implements Marshaller {
 
@@ -55,7 +53,7 @@ public class StandardMarshaller implements Marshaller {
                 }
             }
 
-            if (GET == method) {
+            if (HttpMethod.GET == method) {
                 if (urlParams.length() > 0) {
                     if (requestUrl.contains("?")) {
                         requestUrl = requestUrl + "&" + urlParams.toString();
@@ -67,7 +65,7 @@ public class StandardMarshaller implements Marshaller {
 
             MarshalResult result = new MarshalResult(requestUrl, null);
 
-            if (POST == method) {
+            if (HttpMethod.POST == method) {
                 Arrays.stream(obj.getClass().getDeclaredFields())
                         .map(field -> field.getAnnotation(JacksonProperty.class))
                         .filter(Objects::nonNull)

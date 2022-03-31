@@ -1,4 +1,4 @@
-package org.lavenderx.httpsender;
+package com.github.conchz.http;
 
 import java.util.HashMap;
 import java.util.Map;

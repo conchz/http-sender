@@ -1,9 +1,9 @@
-package org.lavenderx.httpsender.databind;
+package com.github.conchz.http.databind;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.lavenderx.httpsender.SenderException;
-import org.lavenderx.httpsender.utils.JacksonUtils;
+import com.github.conchz.http.SenderException;
+import com.github.conchz.http.utils.JacksonUtils;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
